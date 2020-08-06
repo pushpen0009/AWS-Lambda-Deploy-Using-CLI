@@ -7,7 +7,13 @@ then
   if [ $1 = mvn ]
   then
     TEMPLATE=template-mvn.yml
-    mvn clean package
+    if [ $2 ]
+    then
+      if [ $2 = build ]
+      then
+        mvn clean package
+      fi
+    fi
   fi
 else
   gradle build -i

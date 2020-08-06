@@ -1,29 +1,71 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: AWS Serverless Spring Boot API - com.pkg.lambdaone::lambda1
+Description: AWS Serverless Spring Boot API - com.pkg.lambdaone::lambda2
 Globals:
   Api:
     EndpointConfiguration: REGIONAL
-Resources:
-  Lambda1Function:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: com.pkg.lambdaone.StreamLambdaHandler::handleRequest
-      Runtime: java8
-      CodeUri: s3://lambda2-artifacts-4f7276a364af2a9f/9f0d661e9ea1b420b5273eebccfb8fbe
-      MemorySize: 512
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 30
-      Events:
-        ProxyResource:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: any
 Outputs:
   Lambda1Api:
     Description: URL for application
-    Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping
     Export:
       Name: Lambda2Api
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping
+Resources:
+  Lambda2Function:
+    Properties:
+      CodeUri: s3://lambda2-artifacts-4f7276a364af2a9f/866cd17f7f3b54c6b273c74402dadb24
+      Events:
+        ProxyResource:
+          Properties:
+            Method: any
+            Path: /{proxy+}
+          Type: Api
+      Handler: com.pkg.lambdaone.StreamLambdaHandler::handleRequest
+      MemorySize: 512
+      Policies: AWSLambdaBasicExecutionRole
+      Runtime: java8
+      Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+        - Ref: SecurityGroup
+        SubnetIds:
+        - Ref: PrivateSubnet1
+        - Ref: PrivateSubnet2
+    Type: AWS::Serverless::Function
+  Lambda2VPC:
+    Properties:
+      CidrBlock: 172.32.0.0/16
+      EnableDnsHostnames: false
+      EnableDnsSupport: false
+      InstanceTenancy: default
+    Type: AWS::EC2::VPC
+  PrivateSubnet1:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock: 172.32.0.0/24
+      MapPublicIpOnLaunch: false
+      VpcId:
+        Ref: Lambda2VPC
+    Type: AWS::EC2::Subnet
+  PrivateSubnet2:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock: 172.32.1.0/24
+      MapPublicIpOnLaunch: false
+      VpcId:
+        Ref: Lambda2VPC
+    Type: AWS::EC2::Subnet
+  SecurityGroup:
+    Properties:
+      GroupDescription: Security group for lambda2
+      GroupName: sec-grp-lambda2
+      VpcId:
+        Ref: Lambda2VPC
+    Type: AWS::EC2::SecurityGroup
+Transform: AWS::Serverless-2016-10-31

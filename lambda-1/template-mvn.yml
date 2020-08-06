@@ -15,6 +15,13 @@ Resources:
       MemorySize: 512
       Policies: AWSLambdaBasicExecutionRole
       Timeout: 30
+      Policies:
+        - Statement: 
+          - Sid: ExecuteLambda2
+            Effect: Allow
+            Action: 
+            - lambda:InvokeFunction
+            Resource: '*' 
       Events:
         ProxyResource:
           Type: Api

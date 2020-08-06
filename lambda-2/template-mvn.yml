@@ -1,12 +1,43 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: AWS Serverless Spring Boot API - com.pkg.lambdaone::lambda1
+Description: AWS Serverless Spring Boot API - com.pkg.lambdaone::lambda2
 Globals:
   Api:
     EndpointConfiguration: REGIONAL
 
 Resources:
-  Lambda1Function:
+  Lambda2VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.32.0.0/16
+      EnableDnsHostnames: false
+      EnableDnsSupport: false
+      InstanceTenancy: default
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Lambda2VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: 172.32.0.0/24
+      MapPublicIpOnLaunch: false
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Lambda2VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 172.32.1.0/24
+      MapPublicIpOnLaunch: false
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "sec-grp-lambda2"
+      GroupDescription: "Security group for lambda2"
+      VpcId: !Ref Lambda2VPC
+
+  Lambda2Function:
     Type: AWS::Serverless::Function
     Properties:
       Handler: com.pkg.lambdaone.StreamLambdaHandler::handleRequest
@@ -21,6 +52,12 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: any
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
 
 Outputs:
   Lambda1Api:

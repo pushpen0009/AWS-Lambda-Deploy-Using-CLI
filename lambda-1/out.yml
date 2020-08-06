@@ -1,29 +1,35 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
 Description: AWS Serverless Spring Boot API - com.pkg.lambdaone::lambda1
 Globals:
   Api:
     EndpointConfiguration: REGIONAL
-Resources:
-  Lambda1Function:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: com.pkg.lambdaone.StreamLambdaHandler::handleRequest
-      Runtime: java8
-      CodeUri: s3://lambda-artifacts-60c4b3e70ea2ea03/fc5d1a745c9ab311e36071ac575acdd7
-      MemorySize: 512
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 30
-      Events:
-        ProxyResource:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: any
 Outputs:
   Lambda1Api:
     Description: URL for application
-    Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping
     Export:
       Name: Lambda1Api
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping
+Resources:
+  Lambda1Function:
+    Properties:
+      CodeUri: s3://lambda-artifacts-60c4b3e70ea2ea03/95fc5143a385000776ce381b75f189a5
+      Events:
+        ProxyResource:
+          Properties:
+            Method: any
+            Path: /{proxy+}
+          Type: Api
+      Handler: com.pkg.lambdaone.StreamLambdaHandler::handleRequest
+      MemorySize: 512
+      Policies:
+      - Statement:
+        - Action:
+          - lambda:InvokeFunction
+          Effect: Allow
+          Resource: '*'
+          Sid: ExecuteLambda2
+      Runtime: java8
+      Timeout: 30
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
