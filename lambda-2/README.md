@@ -1,4 +1,10 @@
 # lambda1 serverless API
+
+## Run below two command using gitbash if using windows OS
+./create-bucket.sh
+./deploy.sh mvn  => to deploy existing jar file
+./deploy.sh mvn build => to build and deploy new jar file
+
 The lambda1 project, created with [`aws-serverless-java-container`](https://github.com/awslabs/aws-serverless-java-container).
 
 The starter project defines a simple `/ping` resource that can accept `GET` requests with its tests.
