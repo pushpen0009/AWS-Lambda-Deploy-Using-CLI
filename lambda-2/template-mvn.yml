@@ -10,7 +10,7 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 172.32.0.0/16
-      EnableDnsHostnames: false
+      EnableDnsHostnames: true
       EnableDnsSupport: false
       InstanceTenancy: default
 
@@ -19,16 +19,8 @@ Resources:
     Properties:
       VpcId: !Ref Lambda2VPC
       AvailabilityZone: !Select [ 0, !GetAZs  '' ]
-      CidrBlock: 172.32.0.0/24
-      MapPublicIpOnLaunch: false
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Lambda2VPC
-      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
-      CidrBlock: 172.32.1.0/24
-      MapPublicIpOnLaunch: false
+      CidrBlock: 172.32.0.0/16
+      MapPublicIpOnLaunch: true
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -45,7 +37,7 @@ Resources:
       CodeUri: target/lambda2-1.0-SNAPSHOT.jar
       MemorySize: 512
       Policies: AWSLambdaBasicExecutionRole
-      Timeout: 30
+      Timeout: 90
       Events:
         ProxyResource:
           Type: Api

@@ -49,7 +49,9 @@ public class ApiController {
                     .withCredentials(new DefaultAWSCredentialsProviderChain())
                     .withRegion(Regions.AP_SOUTH_1).build();
 
+            System.out.println("Before Invoking Lambda2");
             invokeResult = awsLambda.invoke(invokeRequest);
+            System.out.println("After Invoking Lambda2");
 
             String ans = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
 
