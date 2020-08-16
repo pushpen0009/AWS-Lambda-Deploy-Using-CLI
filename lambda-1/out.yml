@@ -11,6 +11,24 @@ Outputs:
     Value:
       Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ping
 Resources:
+  DefaultPublicRoute:
+    DependsOn: InternetGateway1Attachment
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway1
+      RouteTableId:
+        Ref: PublicRouteTable
+    Type: AWS::EC2::Route
+  InternetGateway1:
+    Type: AWS::EC2::InternetGateway
+  InternetGateway1Attachment:
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway1
+      VpcId:
+        Ref: Lambda1VPC
+    Type: AWS::EC2::VPCGatewayAttachment
   Lambda1Function:
     Properties:
       CodeUri: s3://lambda-artifacts-60c4b3e70ea2ea03/95fc5143a385000776ce381b75f189a5
@@ -31,5 +49,94 @@ Resources:
           Sid: ExecuteLambda2
       Runtime: java8
       Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+        - Ref: SecurityGroup1
+        SubnetIds:
+        - Ref: PublicSubnet1
+        - Ref: PublicSubnet2
     Type: AWS::Serverless::Function
+  Lambda1VPC:
+    Properties:
+      CidrBlock: 172.33.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+    Type: AWS::EC2::VPC
+  NatGateway1:
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - NatGateway1EIP
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnet1
+    Type: AWS::EC2::NatGateway
+  NatGateway1EIP:
+    DependsOn: InternetGateway1Attachment
+    Properties:
+      Domain: vpc
+    Type: AWS::EC2::EIP
+  NatGateway2:
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - NatGateway2EIP
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnet2
+    Type: AWS::EC2::NatGateway
+  NatGateway2EIP:
+    DependsOn: InternetGateway1Attachment
+    Properties:
+      Domain: vpc
+    Type: AWS::EC2::EIP
+  PublicRouteTable:
+    Properties:
+      VpcId:
+        Ref: Lambda1VPC
+    Type: AWS::EC2::RouteTable
+  PublicSubnet1:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock: 172.33.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: Lambda1VPC
+    Type: AWS::EC2::Subnet
+  PublicSubnet1RouteTableAssociation:
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet1
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PublicSubnet2:
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock: 172.33.1.0/24
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: Lambda1VPC
+    Type: AWS::EC2::Subnet
+  PublicSubnet2RouteTableAssociation:
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet2
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  SecurityGroup1:
+    Properties:
+      GroupDescription: Security group for lambda1
+      GroupName: sec-grp-lambda1
+      VpcId:
+        Ref: Lambda1VPC
+    Type: AWS::EC2::SecurityGroup
 Transform: AWS::Serverless-2016-10-31

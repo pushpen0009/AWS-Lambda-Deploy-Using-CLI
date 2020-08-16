@@ -32,10 +32,10 @@ public class ApiController {
 	private Resource resourceFile;
 
 	@RequestMapping(path = "/call-api", method = RequestMethod.GET)
-    public String time(@RequestParam(name="name") String name) {
+    public String time(@RequestParam(name="name") String functionName) {
 		
 		String result = "";
-        String functionName = "lambda2-Lambda2Function-1DB2RXWC5V3RC";
+        // String functionName = "lambda2-Lambda2Function-1DB2RXWC5V3RC";
 
         InvokeResult invokeResult = null;
 
